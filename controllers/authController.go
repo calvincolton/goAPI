@@ -3,6 +3,7 @@ package controllers
 import (
 	"API/database"
 	"API/models"
+	"API/utils"
 
 	"strconv"
 	"time"
@@ -15,6 +16,8 @@ import (
 type Claims struct {
 	jwt.StandardClaims
 }
+
+// var CookieSecret = "bargleMurgle7982"
 
 func Register(c *fiber.Ctx) error {
 	var data map[string]string
@@ -73,19 +76,14 @@ func Login(c *fiber.Ctx) error {
 		})
 	}
 
-	claims := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.StandardClaims{
-		Issuer:    strconv.Itoa(int(user.Id)),
-		ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
-	})
-
-	token, err := claims.SignedString([]byte("bargleMurgle7982"))
+	token, err := utils.GenerateJWT(strconv.Itoa(int(user.Id)))
 
 	if err != nil {
 		return c.SendStatus(fiber.StatusInternalServerError)
 	}
 
 	cookie := fiber.Cookie{
-		Name:     "jwt",
+		Name:     utils.CookieSecret,
 		Value:    token,
 		Expires:  time.Now().Add(time.Hour * 24),
 		HTTPOnly: true,
@@ -98,25 +96,29 @@ func Login(c *fiber.Ctx) error {
 	})
 }
 
+func Logout(c *fiber.Ctx) error {
+	cookie := fiber.Cookie{
+		Name:     utils.CookieSecret,
+		Value:    "",
+		Expires:  time.Now().Add(-time.Hour),
+		HTTPOnly: true,
+	}
+
+	c.Cookie(&cookie)
+
+	return c.JSON(fiber.Map{
+		"message": "Successfully logged out",
+	})
+}
+
 func User(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt")
 
-	token, err := jwt.ParseWithClaims(cookie, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte("bargleMurgle7982"), nil
-	})
-
-	if err != nil || !token.Valid {
-		c.Status(fiber.StatusUnauthorized)
-		return c.JSON(fiber.Map{
-			"message": "You have not been authenticated",
-		})
-	}
-
-	claims := token.Claims.(*Claims)
+	id, _ := utils.ParseJWT(cookie)
 
 	var user models.User
 
-	database.DB.Where("id = ?", claims.Issuer).First(&user)
+	database.DB.Where("id = ?", id).First(&user)
 
 	return c.JSON(user)
 }
