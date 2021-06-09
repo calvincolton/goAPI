@@ -112,7 +112,7 @@ func Logout(c *fiber.Ctx) error {
 }
 
 func User(c *fiber.Ctx) error {
-	cookie := c.Cookies("jwt")
+	cookie := c.Cookies(utils.CookieSecret)
 
 	id, _ := utils.ParseJWT(cookie)
 

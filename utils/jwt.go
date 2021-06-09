@@ -26,7 +26,7 @@ func ParseJWT(cookie string) (string, error) {
 		return "", err
 	}
 
-	claims := token.Claims(*jwt.StandardClaims)
+	claims := token.Claims.(*jwt.StandardClaims)
 
 	return claims.Issuer, nil
 }
