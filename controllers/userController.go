@@ -3,6 +3,7 @@ package controllers
 import (
 	"API/database"
 	"API/models"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -29,4 +30,46 @@ func CreateUser(c *fiber.Ctx) error {
 	database.DB.Create(&user)
 
 	return c.JSON(user)
+}
+
+func GetUser(c *fiber.Ctx) error {
+	id, _ := strconv.Atoi(c.Params("id"))
+
+	user := models.User{
+		Id: uint(id),
+	}
+
+	database.DB.Find(&user)
+
+	// fmt.Println(c.JSON(user))
+
+	return c.JSON(user)
+}
+
+func UpdateUser(c *fiber.Ctx) error {
+	id, _ := strconv.Atoi(c.Params("id"))
+
+	user := models.User{
+		Id: uint(id),
+	}
+
+	if err := c.BodyParser(&user); err != nil {
+		return err
+	}
+
+	database.DB.Model(&user).Updates(user)
+
+	return c.JSON(user)
+}
+
+func DeleteUser(c *fiber.Ctx) error {
+	id, _ := strconv.Atoi(c.Params("id"))
+
+	user := models.User{
+		Id: uint(id),
+	}
+
+	database.DB.Delete(&user)
+
+	return nil
 }
