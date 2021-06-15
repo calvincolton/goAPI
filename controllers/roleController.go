@@ -16,11 +16,6 @@ func AllRoles(c *fiber.Ctx) error {
 	return c.JSON(roles)
 }
 
-type RoleCreateDto struct {
-	name        string
-	permissions []string
-}
-
 func CreateRole(c *fiber.Ctx) error {
 	var roleDto fiber.Map
 
