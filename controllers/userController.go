@@ -11,7 +11,7 @@ import (
 func AllUsers(c *fiber.Ctx) error {
 	var users []models.User
 
-	database.DB.Find(&users)
+	database.DB.Preload("Role").Find(&users)
 
 	return c.JSON(users)
 }
@@ -40,8 +40,6 @@ func GetUser(c *fiber.Ctx) error {
 	}
 
 	database.DB.Find(&user)
-
-	// fmt.Println(c.JSON(user))
 
 	return c.JSON(user)
 }
