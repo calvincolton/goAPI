@@ -11,31 +11,38 @@ import (
 func AllRoles(c *fiber.Ctx) error {
 	var roles []models.Role
 
-	database.DB.Find(&roles)
+	database.DB.Preload("Permissions").Find(&roles)
 
 	return c.JSON(roles)
 }
 
-func CreateRole(c *fiber.Ctx) error {
-	var roleDto fiber.Map
+type RoleDto struct {
+	Id          uint
+	Name        string
+	Permissions []float64
+}
 
-	if err := c.BodyParser(&roleDto); err != nil {
+func CreateRole(c *fiber.Ctx) error {
+	var roleDto RoleDto
+
+	err := c.BodyParser(&roleDto)
+
+	if err != nil {
 		return err
 	}
 
-	list := roleDto["permissions"].([]interface{})
+	list := roleDto.Permissions
 
 	permissions := make([]models.Permission, len(list))
 
 	for i, permissionId := range list {
-		id, _ := strconv.Atoi(permissionId.(string))
 		permissions[i] = models.Permission{
-			Id: uint(id),
+			Id: uint(permissionId),
 		}
 	}
 
 	role := models.Role{
-		Name:        roleDto["name"].(string),
+		Name:        roleDto.Name,
 		Permissions: permissions,
 	}
 
@@ -51,7 +58,7 @@ func GetRole(c *fiber.Ctx) error {
 		Id: uint(id),
 	}
 
-	database.DB.Find(&role)
+	database.DB.Preload("Permissions").Find(&role)
 
 	return c.JSON(role)
 }
@@ -59,12 +66,30 @@ func GetRole(c *fiber.Ctx) error {
 func UpdateRole(c *fiber.Ctx) error {
 	id, _ := strconv.Atoi(c.Params("id"))
 
-	role := models.Role{
-		Id: uint(id),
+	var roleDto RoleDto
+
+	if err := c.BodyParser(&roleDto); err != nil {
+		return err
 	}
 
-	if err := c.BodyParser(&role); err != nil {
-		return err
+	list := roleDto.Permissions
+
+	permissions := make([]models.Permission, len(list))
+
+	for i, permissionId := range list {
+		permissions[i] = models.Permission{
+			Id: uint(permissionId),
+		}
+	}
+
+	var result interface{}
+
+	database.DB.Table("role_permissions").Where("role_id", id).Delete(&result)
+
+	role := models.Role{
+		Id:          uint(id),
+		Name:        roleDto.Name,
+		Permissions: permissions,
 	}
 
 	database.DB.Model(&role).Updates(role)
@@ -81,5 +106,7 @@ func DeleteRole(c *fiber.Ctx) error {
 
 	database.DB.Delete(&role)
 
-	return nil
+	return c.JSON(fiber.Map{
+		"message": "Role successfully deleted",
+	})
 }
