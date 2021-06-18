@@ -82,5 +82,7 @@ func DeleteUser(c *fiber.Ctx) error {
 
 	database.DB.Delete(&user)
 
-	return nil
+	return c.JSON(fiber.Map{
+		"message": "Successfully deleted user",
+	})
 }
