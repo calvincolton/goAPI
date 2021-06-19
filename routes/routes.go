@@ -10,6 +10,7 @@ import (
 func Setup(app *fiber.App) {
 	app.Post("/api/register", controllers.Register)
 	app.Post("/api/login", controllers.Login)
+	app.Static("/api/uploads/", "./uploads")
 
 	app.Use(middleware.IsAuthenticated)
 
@@ -39,4 +40,6 @@ func Setup(app *fiber.App) {
 	app.Get("/api/products/:id", controllers.GetProduct)
 	app.Put("/api/products/:id", controllers.UpdateProduct)
 	app.Delete("/api/products/:id", controllers.DeleteProduct)
+
+	app.Post("/api/uploads", controllers.Upload)
 }
