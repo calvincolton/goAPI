@@ -13,3 +13,17 @@ func AllOrders(c *fiber.Ctx) error {
 
 	return c.JSON(models.Paginate(database.DB, &models.Order{}, page))
 }
+
+func CreateOrder(c *fiber.Ctx) error {
+	var order models.Order
+
+	err := c.BodyParser(&order)
+
+	if err != nil {
+		return err
+	}
+
+	database.DB.Create(&order)
+
+	return c.JSON(order)
+}
