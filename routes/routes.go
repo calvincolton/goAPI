@@ -2,7 +2,7 @@ package routes
 
 import (
 	"API/controllers"
-	"API/middleware"
+	"API/middlewares"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -12,7 +12,7 @@ func Setup(app *fiber.App) {
 	app.Post("/api/login", controllers.Login)
 	app.Static("/api/uploads/", "./uploads")
 
-	app.Use(middleware.IsAuthenticated)
+	app.Use(middlewares.IsAuthenticated)
 
 	app.Post("/api/logout", controllers.Logout)
 
@@ -44,4 +44,6 @@ func Setup(app *fiber.App) {
 	app.Post("/api/uploads", controllers.Upload)
 
 	app.Get("/api/orders", controllers.AllOrders)
+	app.Post("/api/export", controllers.ExportOrder)
+	app.Get("/api/chart", controllers.Chart)
 }
